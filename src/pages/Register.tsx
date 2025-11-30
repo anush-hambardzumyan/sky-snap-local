@@ -57,24 +57,33 @@ export default function Register() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          username: formData.username,
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            username: formData.username,
+          },
         },
-      },
-    });
+      });
 
-    setLoading(false);
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Account created! Redirecting to dashboard...");
-      navigate("/dashboard");
+      if (error) {
+        if (error.message.includes("already registered")) {
+          toast.error("This email is already registered. Please log in instead.");
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.success("Account created! Redirecting to dashboard...");
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      // Network error - Failed to fetch
+      toast.error("Network error. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
